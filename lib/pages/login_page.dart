@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:chat/widgets/boton_azul.dart';
+import 'package:provider/provider.dart';
+
+import 'package:chat/services/auth_service.dart';
+
+import 'package:chat/helpers/mostrar_alerta.dart';
 
 import 'package:chat/widgets/labels.dart';
 import 'package:chat/widgets/logo.dart';
@@ -49,6 +53,9 @@ class __FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(
+        context); //(context, listen: tru);que viene por defecto
+
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -68,10 +75,32 @@ class __FormState extends State<_Form> {
           ),
           BotonAzul(
             text: 'Ingrese',
-            onPressed: () {
-              print(emailCtrl.text);
-              print(passCtrl.text);
-            },
+            onPressed: authService.autenticando
+                ? null
+                : () async {
+                    //desaparecer teclado
+                    FocusScope.of(context).unfocus();
+                    // print(emailCtrl.text);
+                    //print(passCtrl.text);
+                    //llamar a nuestro provider
+
+                    //llamar al authService
+                    final loginOk = await authService.login(
+                        emailCtrl.text.trim(),
+                        passCtrl.text.trim()); //trim()= no espacios en blanco
+
+                    if (loginOk) {
+                      //TODO:Conectar a nuestro socket server
+                      Navigator.pushReplacementNamed(context, 'usuarios');
+                      // TODO: Navegar a otra pantalla
+                    } else {
+                      //Mostrar alerta
+                      //mostrarAlerta(BuildContext context, String titulo,
+                      //  String subtitulo) {}
+                      mostrarAlerta(context, 'Login incorrecto',
+                          'Revise sus credenciales nuevamente');
+                    }
+                  },
           )
         ],
       ),
